@@ -7,8 +7,10 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class ApplicationFrame extends JFrame implements ActionListener {
+public class ApplicationFrame extends JFrame implements ActionListener, ChangeListener {
     private int WIDTH = 1920, HEIGHT = 1080;
     private String FONT = "Calibri";
     private JLabel title = new JLabel("Pixelator");
@@ -70,11 +72,12 @@ public class ApplicationFrame extends JFrame implements ActionListener {
         detailSlider.setToolTipText("Choose a file to convert first!");
         detailSlider.setSize(300, 30);
         detailSlider.setLocation(mid - detailSlider.getSize().width / 2, 800);
+        detailSlider.addChangeListener(this);
     }
 
     private void setSliderTicks(int numTicks){
         detailSlider.setMinimum(0);
-        detailSlider.setMaximum(numTicks);
+        detailSlider.setMaximum(numTicks - 1);
         detailSlider.setToolTipText("Size of pixels");
         detailSlider.setMajorTickSpacing(1);
         detailSlider.setEnabled(true);
@@ -115,6 +118,14 @@ public class ApplicationFrame extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == filePickerButton){
             chooseFile();
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        if(e.getSource() == detailSlider){
+            Config.setPixelSize(detailSlider.getValue());
+            detailSlider.setToolTipText(String.format("Pixel Size: %d x %d", Config.pixelSize, Config.pixelSize));
         }
     }
 }
