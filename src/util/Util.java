@@ -45,8 +45,8 @@ public final class Util {
         return commonArr;
     }
 
-    public static void reversePrimitiveIntArray(int[] arr){
-        for(int i = 0, mid = arr.length/2; i < mid; i++){
+    public static void reversePrimitiveIntArray(int[] arr) {
+        for (int i = 0, mid = arr.length / 2; i < mid; i++) {
             int temp = arr[i];
             arr[i] = arr[arr.length - i - 1];
             arr[arr.length - i - 1] = temp;

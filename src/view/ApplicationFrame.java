@@ -1,6 +1,9 @@
 package view;
 
 import model.Config;
+import pipeline.ImageReader;
+import pipeline.ImageWriter;
+import pipeline.Processor;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -11,8 +14,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class ApplicationFrame extends JFrame implements ActionListener, ChangeListener {
-    private int WIDTH = 1920, HEIGHT = 1080;
-    private String FONT = "Calibri";
+    private static final int WIDTH = 1920, HEIGHT = 1080;
+    private static final String FONT = "Calibri";
+
     private JLabel title = new JLabel("Pixelator");
     private JLabel sliderHeader = new JLabel("Detail");
     private JSlider detailSlider = new JSlider();
@@ -75,10 +79,9 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         detailSlider.addChangeListener(this);
     }
 
-    private void setSliderTicks(int numTicks){
+    private void setSliderTicks(int numTicks) {
         detailSlider.setMinimum(0);
         detailSlider.setMaximum(numTicks - 1);
-        detailSlider.setToolTipText("Size of pixels");
         detailSlider.setMajorTickSpacing(1);
         detailSlider.setEnabled(true);
 
@@ -96,17 +99,18 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         boolean validFile = false;
 
         JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("."));
 
-        while(!validFile) {
+        while (!validFile) {
             int ret = chooser.showDialog(this, "Choose an image");
             validFile = true;
 
             if (ret == JFileChooser.APPROVE_OPTION) {
                 File selected = chooser.getSelectedFile();
                 try {
-                    Config.setImage(selected);
+                    ImageReader.readImage(selected);
                     setSliderTicks(Config.pixelSizeOptions.length);
-                } catch (IOException e){
+                } catch (IOException e) {
                     JOptionPane.showMessageDialog(this, "Invalid file. Please choose again.");
                     validFile = false;
                 }
@@ -114,16 +118,58 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         }
     }
 
+    private void chooseOutputFolder() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("."));
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        boolean hasChosenFolder = false;
+
+        while (!hasChosenFolder) {
+            int res = chooser.showDialog(this, "Choose output folder");
+            hasChosenFolder = res != JFileChooser.CANCEL_OPTION;
+
+            if (!hasChosenFolder) {
+                JOptionPane.showMessageDialog(this, "Please choose an output folder");
+            }
+        }
+
+        Config.outputFolder = chooser.getSelectedFile().getAbsolutePath();
+    }
+
+    private void chooseOutputName() {
+        String name = "";
+
+        while (name.equals("")) {
+            name = JOptionPane.showInputDialog(this, "Name of output file", "converted");
+            if (name.equals("")) {
+                JOptionPane.showMessageDialog(this, "Names cannot be blank");
+            }
+        }
+
+        Config.outputFileName = name;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == filePickerButton){
+        if (e.getSource() == filePickerButton) {
             chooseFile();
+        } else if (e.getSource() == convertButton) {
+            try {
+                chooseOutputFolder();
+                chooseOutputName();
+                ImageWriter.writeImageFromArray(Processor.processImage());
+            } catch (IOException err) {
+                System.err.println(err);
+            }
+
         }
     }
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        if(e.getSource() == detailSlider){
+        if (e.getSource() == detailSlider) {
             Config.setPixelSize(detailSlider.getValue());
             detailSlider.setToolTipText(String.format("Pixel Size: %d x %d", Config.pixelSize, Config.pixelSize));
         }
