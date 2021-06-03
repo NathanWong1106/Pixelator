@@ -1,7 +1,11 @@
 package view;
 
+import model.Config;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import javax.swing.*;
 
 public class ApplicationFrame extends JFrame implements ActionListener {
@@ -9,15 +13,13 @@ public class ApplicationFrame extends JFrame implements ActionListener {
     private String FONT = "Calibri";
     private JLabel title = new JLabel("Pixelator");
     private JLabel sliderHeader = new JLabel("Detail");
-    private JLabel fileNameHeader = new JLabel("File Name");
     private JSlider detailSlider = new JSlider();
     private JButton filePickerButton = new JButton("Choose File");
     private JButton convertButton = new JButton("Convert");
     private JLabel originalImg = new JLabel();
     private JLabel convertedImg = new JLabel();
-    private JTextField fileNameInput = new JTextField();
 
-    private JComponent[] frameComponents = {title, sliderHeader, fileNameHeader, detailSlider, filePickerButton, convertButton, originalImg, convertedImg, fileNameInput};
+    private JComponent[] frameComponents = {title, sliderHeader, detailSlider, filePickerButton, convertButton, originalImg, convertedImg};
 
     public ApplicationFrame() {
         setSize(WIDTH, HEIGHT);
@@ -31,6 +33,7 @@ public class ApplicationFrame extends JFrame implements ActionListener {
     private void setupGUI() {
         setupLabels();
         setupButtons();
+        setupSlider();
         addGUIElements();
     }
 
@@ -42,27 +45,42 @@ public class ApplicationFrame extends JFrame implements ActionListener {
         title.setHorizontalAlignment(JLabel.CENTER);
 
         sliderHeader.setSize(200, 50);
-        sliderHeader.setLocation(100, 800);
-        sliderHeader.setFont(new Font(FONT, Font.PLAIN, 30));
+        sliderHeader.setLocation(mid - sliderHeader.getSize().width / 2, 750);
+        sliderHeader.setFont(new Font(FONT, Font.PLAIN, 20));
         sliderHeader.setHorizontalAlignment(JLabel.CENTER);
-
-        fileNameHeader.setSize(200, 50);
-        fileNameHeader.setLocation(mid + 600, 800);
-        fileNameHeader.setFont(new Font(FONT, Font.PLAIN, 30));
-        fileNameHeader.setHorizontalAlignment(JLabel.CENTER);
 
         //TODO setup image labels
     }
 
     private void setupButtons() {
         int mid = WIDTH / 2;
-        filePickerButton.setSize(200, 100);
-        filePickerButton.setLocation(mid - filePickerButton.getSize().width / 2, 800);
+        filePickerButton.setSize(200, 50);
+        filePickerButton.setLocation(mid - filePickerButton.getSize().width / 2, 875);
         filePickerButton.addActionListener(this);
 
-        convertButton.setSize(200, 100);
-        convertButton.setLocation(mid - convertButton.getSize().width / 2, 910);
+        convertButton.setSize(200, 50);
+        convertButton.setLocation(mid - convertButton.getSize().width / 2, 950);
         convertButton.addActionListener(this);
+    }
+
+    private void setupSlider() {
+        int mid = WIDTH / 2;
+        detailSlider.setEnabled(false);
+        detailSlider.setPaintTicks(true);
+        detailSlider.setToolTipText("Choose a file to convert first!");
+        detailSlider.setSize(300, 30);
+        detailSlider.setLocation(mid - detailSlider.getSize().width / 2, 800);
+    }
+
+    private void setSliderTicks(int numTicks){
+        detailSlider.setMinimum(0);
+        detailSlider.setMaximum(numTicks);
+        detailSlider.setToolTipText("Size of pixels");
+        detailSlider.setMajorTickSpacing(1);
+        detailSlider.setEnabled(true);
+
+        detailSlider.setValue(0);
+        Config.setPixelSize(0);
     }
 
     private void addGUIElements() {
@@ -71,8 +89,32 @@ public class ApplicationFrame extends JFrame implements ActionListener {
         }
     }
 
+    private void chooseFile() {
+        boolean validFile = false;
+
+        JFileChooser chooser = new JFileChooser();
+
+        while(!validFile) {
+            int ret = chooser.showDialog(this, "Choose an image");
+            validFile = true;
+
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                File selected = chooser.getSelectedFile();
+                try {
+                    Config.setImage(selected);
+                    setSliderTicks(Config.pixelSizeOptions.length);
+                } catch (IOException e){
+                    JOptionPane.showMessageDialog(this, "Invalid file. Please choose again.");
+                    validFile = false;
+                }
+            }
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        if(e.getSource() == filePickerButton){
+            chooseFile();
+        }
     }
 }
