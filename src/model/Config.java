@@ -13,6 +13,7 @@ public class Config {
     public static String outputFileName;
     public static File imgFile;
     public static BufferedImage bufferedImage;
+    public static BufferedImage convertedImage;
     public static Color[][] imgArr;
 
     public static void setPixelSize(int index) {

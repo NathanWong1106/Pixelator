@@ -19,6 +19,7 @@ public class ImageWriter {
             }
         }
 
+        Config.convertedImage = img;
         File out = new File(Config.outputFolder + "/" + Config.outputFileName + ".png");
         ImageIO.write(img, "png", out);
 

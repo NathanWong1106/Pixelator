@@ -4,9 +4,11 @@ import model.Config;
 import pipeline.ImageReader;
 import pipeline.ImageWriter;
 import pipeline.Processor;
+import util.ImageSizeUtil;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.*;
@@ -56,6 +58,10 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         sliderHeader.setHorizontalAlignment(JLabel.CENTER);
 
         //TODO setup image labels
+        originalImg.setLocation(10, 50);
+        originalImg.setSize(ImageSizeUtil.MAX_IM_SIZE_WIDTH, ImageSizeUtil.MAX_IM_SIZE_HEIGHT);
+        convertedImg.setLocation(1000, 50);
+        convertedImg.setSize(ImageSizeUtil.MAX_IM_SIZE_WIDTH, ImageSizeUtil.MAX_IM_SIZE_HEIGHT);
     }
 
     private void setupButtons() {
@@ -95,71 +101,111 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         }
     }
 
-    private void chooseFile() {
-        boolean validFile = false;
+    private boolean chooseFile() {
+        boolean hasChosenFile = false;
 
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
 
-        while (!validFile) {
+        while (!hasChosenFile) {
             int ret = chooser.showDialog(this, "Choose an image");
-            validFile = true;
 
             if (ret == JFileChooser.APPROVE_OPTION) {
                 File selected = chooser.getSelectedFile();
+                hasChosenFile = true;
                 try {
                     ImageReader.readImage(selected);
                     setSliderTicks(Config.pixelSizeOptions.length);
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(this, "Invalid file. Please choose again.");
-                    validFile = false;
+                    hasChosenFile = false;
                 }
             }
+            else if (ret == JFileChooser.CANCEL_OPTION){
+                return false;
+            }
         }
+
+        return true;
     }
 
-    private void chooseOutputFolder() {
+    private boolean chooseOutputFolder() {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
 
-        boolean hasChosenFolder = false;
-
-        while (!hasChosenFolder) {
-            int res = chooser.showDialog(this, "Choose output folder");
-            hasChosenFolder = res != JFileChooser.CANCEL_OPTION;
-
-            if (!hasChosenFolder) {
-                JOptionPane.showMessageDialog(this, "Please choose an output folder");
-            }
+        int res = chooser.showDialog(this, "Choose output folder");
+        System.out.println(res);
+        if (res == JOptionPane.NO_OPTION) {
+            return false;
         }
 
         Config.outputFolder = chooser.getSelectedFile().getAbsolutePath();
+        return true;
     }
 
-    private void chooseOutputName() {
+    private boolean chooseOutputName() {
         String name = "";
 
         while (name.equals("")) {
             name = JOptionPane.showInputDialog(this, "Name of output file", "converted");
-            if (name.equals("")) {
+            if(name == null){
+                return false;
+            }
+            else if (name.equals("")) {
                 JOptionPane.showMessageDialog(this, "Names cannot be blank");
             }
         }
 
         Config.outputFileName = name;
+
+        return true;
+    }
+
+    private void updateOriginalImg(){
+
+        //Portrait
+        if(Config.bufferedImage.getWidth() < Config.bufferedImage.getHeight()) {
+//            originalImg.setLocation(20, 30);
+//            originalImg.setSize(600, 888);
+            originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
+        }
+        //Landscape
+        else {
+//            originalImg.setLocation(10, 100);
+//            originalImg.setSize(888, 500);
+            originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
+        }
+    }
+
+    private void updateConvertedImg() {
+        //Portrait
+        if(Config.convertedImage.getWidth() < Config.convertedImage.getHeight()) {
+//            convertedImg.setLocation(1250, 30);
+//            convertedImg.setSize(600, 888);
+            convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
+        }
+        //Landscape
+        else {
+//            convertedImg.setLocation(900, 100);
+//            convertedImg.setSize(888, 500);
+            convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
+        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == filePickerButton) {
-            chooseFile();
+            if(chooseFile()) {
+                updateOriginalImg();
+            }
         } else if (e.getSource() == convertButton) {
             try {
-                chooseOutputFolder();
-                chooseOutputName();
-                ImageWriter.writeImageFromArray(Processor.processImage());
+                if(Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
+                    ImageWriter.writeImageFromArray(Processor.processImage());
+                    updateConvertedImg();
+                }
             } catch (IOException err) {
                 System.err.println(err);
             }
