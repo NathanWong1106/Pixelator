@@ -57,11 +57,15 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         sliderHeader.setFont(new Font(FONT, Font.PLAIN, 20));
         sliderHeader.setHorizontalAlignment(JLabel.CENTER);
 
-        //TODO setup image labels
-        originalImg.setLocation(10, 50);
+        originalImg.setLocation(20, 100);
         originalImg.setSize(ImageSizeUtil.MAX_IM_SIZE_WIDTH, ImageSizeUtil.MAX_IM_SIZE_HEIGHT);
-        convertedImg.setLocation(1000, 50);
+        originalImg.setHorizontalAlignment(JLabel.CENTER);
+        originalImg.setVerticalAlignment(JLabel.CENTER);
+
+        convertedImg.setLocation(1170, 100);
         convertedImg.setSize(ImageSizeUtil.MAX_IM_SIZE_WIDTH, ImageSizeUtil.MAX_IM_SIZE_HEIGHT);
+        convertedImg.setHorizontalAlignment(JLabel.CENTER);
+        convertedImg.setVerticalAlignment(JLabel.CENTER);
     }
 
     private void setupButtons() {
@@ -120,8 +124,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
                     JOptionPane.showMessageDialog(this, "Invalid file. Please choose again.");
                     hasChosenFile = false;
                 }
-            }
-            else if (ret == JFileChooser.CANCEL_OPTION){
+            } else if (ret == JFileChooser.CANCEL_OPTION) {
                 return false;
             }
         }
@@ -136,7 +139,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         chooser.setAcceptAllFileFilterUsed(false);
 
         int res = chooser.showDialog(this, "Choose output folder");
-        System.out.println(res);
+
         if (res == JOptionPane.NO_OPTION) {
             return false;
         }
@@ -150,10 +153,9 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
 
         while (name.equals("")) {
             name = JOptionPane.showInputDialog(this, "Name of output file", "converted");
-            if(name == null){
+            if (name == null) {
                 return false;
-            }
-            else if (name.equals("")) {
+            } else if (name.equals("")) {
                 JOptionPane.showMessageDialog(this, "Names cannot be blank");
             }
         }
@@ -163,10 +165,10 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         return true;
     }
 
-    private void updateOriginalImg(){
+    private void updateOriginalImg() {
 
         //Portrait
-        if(Config.bufferedImage.getWidth() < Config.bufferedImage.getHeight()) {
+        if (Config.bufferedImage.getWidth() < Config.bufferedImage.getHeight()) {
 //            originalImg.setLocation(20, 30);
 //            originalImg.setSize(600, 888);
             originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
@@ -181,7 +183,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
 
     private void updateConvertedImg() {
         //Portrait
-        if(Config.convertedImage.getWidth() < Config.convertedImage.getHeight()) {
+        if (Config.convertedImage.getWidth() < Config.convertedImage.getHeight()) {
 //            convertedImg.setLocation(1250, 30);
 //            convertedImg.setSize(600, 888);
             convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
@@ -197,12 +199,12 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == filePickerButton) {
-            if(chooseFile()) {
+            if (chooseFile()) {
                 updateOriginalImg();
             }
         } else if (e.getSource() == convertButton) {
             try {
-                if(Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
+                if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
                     ImageWriter.writeImageFromArray(Processor.processImage());
                     updateConvertedImg();
                 }

@@ -1,9 +1,12 @@
 package util;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
 public final class Util {
+    private static final double SIM_THRESHOLD = 20;
+
     public static int euclidGCD(int x, int y) {
 
         int remainder = -1;
@@ -51,5 +54,22 @@ public final class Util {
             arr[i] = arr[arr.length - i - 1];
             arr[arr.length - i - 1] = temp;
         }
+    }
+
+    public static double getEuclideanSimilarity(Color c1, Color c2) {
+        //If we treat colours as 3d points in space (r,g,b = x,y,z) we can determine the distance between them and use that measurement for "similarity"
+        //https://en.wikipedia.org/wiki/Color_difference#Euclidean
+        //dist^2 = (dR)^2 + (dG)^2 + (dB)^2
+        int red1 = c1.getRed(), red2 = c2.getRed();
+        int green1 = c1.getGreen(), green2 = c2.getGreen();
+        int blue1 = c1.getBlue(), blue2 = c2.getBlue();
+
+        double dist = Math.sqrt(Math.pow(red2 - red1, 2) + Math.pow(green2 - green1, 2) + Math.pow(blue2 - blue1, 2));
+
+        return dist;
+    }
+
+    public static boolean isColorSimilar(Color c1, Color c2) {
+        return getEuclideanSimilarity(c1, c2) < SIM_THRESHOLD;
     }
 }

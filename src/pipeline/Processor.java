@@ -1,14 +1,16 @@
 package pipeline;
 
 import model.Config;
+import util.Util;
 
 import java.awt.*;
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Processor {
     private static final double MAX_RGB = 255;
-    private static final double SIM_THRESHOLD = 20;
 
     public static Color[][] processImage() {
         int vertStep = Config.bufferedImage.getHeight() / Config.pixelSize;
@@ -17,10 +19,11 @@ public class Processor {
 
         for (int pixelRow = 0; pixelRow < vertStep; pixelRow++) {
             for (int pixelCol = 0; pixelCol < horStep; pixelCol++) {
-                pixelImg[pixelRow][pixelCol] = getColorSumAvg(pixelRow, pixelCol);
+                pixelImg[pixelRow][pixelCol] = getDominantColorBySimilarity(pixelRow, pixelCol);
             }
         }
 
+        //return PostProcessor.getWeightedBlur(pixelImg);
         return pixelImg;
     }
 
@@ -50,7 +53,8 @@ public class Processor {
         return new Color((int) r, (int) g, (int) b);
     }
 
-    private static Color getCommonColor(int rowStep, int colStep) {
+    //TODO also consider dominant similar colors?
+    private static Color getDominantColor(int rowStep, int colStep) {
         HashMap<Integer, Integer> count = new HashMap<>();
 
         int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
@@ -77,23 +81,49 @@ public class Processor {
         return new Color(color);
     }
 
-    //Deprecated due to complexity... might've been a cool idea if there was more time though :)
-    //TODO the idea is to match the highest similar intensity (darkest or lightest) of the pixel's neighbours for edge enhancement
-    //TODO perhaps combine with canny edge detection on the original image
-    public static double getEuclideanSimilarity(Color c1, Color c2) {
-        //If we treat colours as 3d points in space (r,g,b = x,y,z) we can determine the distance between them and use that measurement for "similarity"
-        //https://en.wikipedia.org/wiki/Color_difference#Euclidean
-        //dist^2 = (dR)^2 + (dG)^2 + (dB)^2
-        int red1 = c1.getRed(), red2 = c2.getRed();
-        int green1 = c1.getGreen(), green2 = c2.getGreen();
-        int blue1 = c1.getBlue(), blue2 = c2.getBlue();
+    //By far the least efficient algorithm but also the one with the best results
+    private static Color getDominantColorBySimilarity(int rowStep, int colStep) {
+        HashMap<Integer, Integer> count = new HashMap<>();
+        HashMap<Integer, Integer> similarityCount;
 
-        double dist = Math.sqrt(Math.pow(red2 - red1, 2) + Math.pow(green2 - green1, 2) + Math.pow(blue2 - blue1, 2));
+        int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
+        int colLim = Config.pixelSize * colStep + Config.pixelSize;
 
-        return dist;
-    }
+        for (int row = Config.pixelSize * rowStep; row < rowLim; row++) {
+            for (int col = Config.pixelSize * colStep; col < colLim; col++) {
+                Color color = new Color(Config.bufferedImage.getRGB(col, row));
+                count.putIfAbsent(color.getRGB(), 0);
+                count.put(color.getRGB(), count.get(color.getRGB()) + 1);
+            }
+        }
 
-    public static boolean isColorSimilar(Color c1, Color c2) {
-        return getEuclideanSimilarity(c1, c2) < SIM_THRESHOLD;
+        similarityCount = new HashMap<>(count);
+
+        ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(count.entrySet());
+        for(int i = 0, size = list.size(); i < size - 1; i++){
+            Color color1 = new Color(list.get(i).getKey());
+
+            for(int j = i + 1; j < size; j++){
+                Color color2 = new Color(list.get(j).getKey());
+
+                if(Util.isColorSimilar(color1, color2)){
+                    similarityCount.put(color1.getRGB(), similarityCount.get(color1.getRGB()) + count.get(color2.getRGB()));
+                    similarityCount.put(color2.getRGB(), similarityCount.get(color2.getRGB()) + count.get(color1.getRGB()));
+                }
+
+            }
+        }
+
+        int max = 0;
+        int color = 0;
+
+        for(Map.Entry<Integer, Integer> e : similarityCount.entrySet()){
+            if(max < e.getValue()){
+                max = e.getValue();
+                color = e.getKey();
+            }
+        }
+
+        return new Color(color);
     }
 }

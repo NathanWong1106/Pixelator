@@ -3,7 +3,7 @@ package pipeline;
 import java.awt.*;
 
 public class PostProcessor {
-    public static double centralPixelWeight = 10; //basically alpha
+    public static final double centralPixelWeight = 10;
 
     public static Color[][] getWeightedBlur(Color[][] img){
         int height = img.length;
@@ -51,4 +51,5 @@ public class PostProcessor {
         }
         return post;
     }
+
 }
