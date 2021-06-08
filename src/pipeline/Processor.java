@@ -4,7 +4,6 @@ import model.Config;
 import util.Util;
 
 import java.awt.*;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +18,18 @@ public class Processor {
 
         for (int pixelRow = 0; pixelRow < vertStep; pixelRow++) {
             for (int pixelCol = 0; pixelCol < horStep; pixelCol++) {
-                pixelImg[pixelRow][pixelCol] = getDominantColorBySimilarity(pixelRow, pixelCol);
+
+                switch(Config.processOption) {
+                    case AVG_CLR_SUM:
+                        pixelImg[pixelRow][pixelCol] = getColorSumAvg(pixelRow, pixelCol);
+                        break;
+                    case DOM_CLR:
+                        pixelImg[pixelRow][pixelCol] = getDominantColor(pixelRow, pixelCol);
+                        break;
+                    case DOM_CLR_BY_SIM:
+                        pixelImg[pixelRow][pixelCol] = getDominantColorBySimilarity(pixelRow, pixelCol);
+                        break;
+                }
             }
         }
 
@@ -53,7 +63,6 @@ public class Processor {
         return new Color((int) r, (int) g, (int) b);
     }
 
-    //TODO also consider dominant similar colors?
     private static Color getDominantColor(int rowStep, int colStep) {
         HashMap<Integer, Integer> count = new HashMap<>();
 

@@ -2,15 +2,12 @@ package view;
 
 import model.Config;
 import pipeline.ImageReader;
-import pipeline.ImageWriter;
-import pipeline.Processor;
 import pipeline.Runner;
-import util.Command;
+import model.Command;
 import util.ImageSizeUtil;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.*;
@@ -170,34 +167,11 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     }
 
     private void updateOriginalImg() {
-
-        //Portrait
-        if (Config.bufferedImage.getWidth() < Config.bufferedImage.getHeight()) {
-//            originalImg.setLocation(20, 30);
-//            originalImg.setSize(600, 888);
-            originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
-        }
-        //Landscape
-        else {
-//            originalImg.setLocation(10, 100);
-//            originalImg.setSize(888, 500);
-            originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
-        }
+        originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
     }
 
     private void updateConvertedImg() {
-        //Portrait
-        if (Config.convertedImage.getWidth() < Config.convertedImage.getHeight()) {
-//            convertedImg.setLocation(1250, 30);
-//            convertedImg.setSize(600, 888);
-            convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
-        }
-        //Landscape
-        else {
-//            convertedImg.setLocation(900, 100);
-//            convertedImg.setSize(888, 500);
-            convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
-        }
+        convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
     }
 
     @Override
@@ -207,15 +181,10 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
                 updateOriginalImg();
             }
         } else if (e.getSource() == convertButton) {
-//            try {
                 if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
                     new Modal(this, "Processing Image... please wait", runner);
-//                    ImageWriter.writeImageFromArray(Processor.processImage());
                     updateConvertedImg();
                 }
-//            } catch (IOException err) {
-//                System.err.println(err);
-//            }
 
         }
     }

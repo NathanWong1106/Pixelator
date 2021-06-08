@@ -1,6 +1,6 @@
 package view;
 
-import util.Command;
+import model.Command;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 public class Modal extends JDialog {
     private SwingWorker worker;
 
+    //TODO consider giving the user the option to cancel
     public Modal(Frame parent, String message, Command runnable) {
         super(parent);
 
@@ -24,7 +25,7 @@ public class Modal extends JDialog {
 
         worker = new SwingWorker<>() {
             @Override
-            protected String doInBackground() throws Exception {
+            protected String doInBackground() {
                 runnable.run();
                 return "Finished";
             }

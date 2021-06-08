@@ -1,10 +1,8 @@
 package model;
 
-import pipeline.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 public class Config {
     public static int pixelSize;
@@ -15,6 +13,7 @@ public class Config {
     public static BufferedImage bufferedImage;
     public static BufferedImage convertedImage;
     public static Color[][] imgArr;
+    public static ProcessOption processOption = ProcessOption.AVG_CLR_SUM;
 
     public static void setPixelSize(int index) {
         pixelSize = pixelSizeOptions[index];
