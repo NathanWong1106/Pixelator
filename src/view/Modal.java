@@ -4,24 +4,32 @@ import model.Command;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
-public class Modal extends JDialog {
+public class Modal extends JDialog implements ActionListener {
     private SwingWorker worker;
+    private JPanel panel = new JPanel(new BorderLayout());
+    private JLabel messageLabel;
+    private JButton cancelButton = new JButton("Cancel");
 
-    //TODO consider giving the user the option to cancel
-    public Modal(Frame parent, String message, Command runnable) {
+    public Modal(Frame parent, String message, Command runnable) throws ExecutionException, InterruptedException {
         super(parent);
 
-        JPanel p1 = new JPanel(new BorderLayout());
-        p1.add(new JLabel(message), BorderLayout.CENTER);
+        messageLabel = new JLabel(message);
+        cancelButton.setSize(100, 30);
+        cancelButton.addActionListener(this);
+        panel.add(messageLabel, BorderLayout.CENTER);
+        panel.add(cancelButton, BorderLayout.SOUTH);
 
-        getContentPane().add(p1);
+        getContentPane().add(panel);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(parent);
         setModal(true);
         setTitle(message);
-        setSize(300,100);
+        setSize(300, 100);
 
         worker = new SwingWorker<>() {
             @Override
@@ -37,16 +45,23 @@ public class Modal extends JDialog {
             }
         };
 
+        //Start the worker thread
         worker.execute();
 
         //setVisible must be called after execute to keep the Worker thread alive
         setVisible(true);
 
-        //Blocking code - will wait until done
-        try{
-            worker.get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+        //Blocking code - will wait until done (and throw any errors that occur)
+        worker.get();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == cancelButton) {
+            boolean successCancel = worker.cancel(true);
+            if(!successCancel){
+                JOptionPane.showMessageDialog(getParent(), "Could not cancel task");
+            }
         }
     }
 }

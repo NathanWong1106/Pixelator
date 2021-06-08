@@ -10,6 +10,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -78,6 +80,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         convertButton.setSize(200, 50);
         convertButton.setLocation(mid - convertButton.getSize().width / 2, 950);
         convertButton.addActionListener(this);
+        convertButton.setEnabled(false);
     }
 
     private void setupSlider() {
@@ -130,6 +133,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
             }
         }
 
+        convertButton.setEnabled(true);
         return true;
     }
 
@@ -181,10 +185,23 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
                 updateOriginalImg();
             }
         } else if (e.getSource() == convertButton) {
-                if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
+            if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
+                boolean processDone = true;
+                try {
                     new Modal(this, "Processing Image... please wait", runner);
+                } catch (Exception err) {
+                    if (err instanceof CancellationException) {
+                        System.out.println("Cancelled Processing");
+                    } else {
+                        err.printStackTrace();
+                    }
+                    processDone = false;
+                }
+
+                if (processDone) {
                     updateConvertedImg();
                 }
+            }
 
         }
     }
