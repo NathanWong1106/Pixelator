@@ -1,7 +1,7 @@
 package model;
 
 public enum ProcessOption {
-    AVG_CLR_SUM,
-    DOM_CLR,
-    DOM_CLR_BY_SIM
+    AVERAGE_COLOR_SUM,
+    DOMINANT_COLOR,
+    DOMINANT_COLOR_SIMILARITY
 }

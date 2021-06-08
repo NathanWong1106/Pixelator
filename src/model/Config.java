@@ -13,7 +13,7 @@ public class Config {
     public static BufferedImage bufferedImage;
     public static BufferedImage convertedImage;
     public static Color[][] imgArr;
-    public static ProcessOption processOption = ProcessOption.AVG_CLR_SUM;
+    public static ProcessOption processOption = ProcessOption.AVERAGE_COLOR_SUM;
 
     public static void setPixelSize(int index) {
         pixelSize = pixelSizeOptions[index];

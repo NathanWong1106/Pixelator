@@ -20,13 +20,13 @@ public class Processor {
             for (int pixelCol = 0; pixelCol < horStep; pixelCol++) {
 
                 switch(Config.processOption) {
-                    case AVG_CLR_SUM:
+                    case AVERAGE_COLOR_SUM:
                         pixelImg[pixelRow][pixelCol] = getColorSumAvg(pixelRow, pixelCol);
                         break;
-                    case DOM_CLR:
+                    case DOMINANT_COLOR:
                         pixelImg[pixelRow][pixelCol] = getDominantColor(pixelRow, pixelCol);
                         break;
-                    case DOM_CLR_BY_SIM:
+                    case DOMINANT_COLOR_SIMILARITY:
                         pixelImg[pixelRow][pixelCol] = getDominantColorBySimilarity(pixelRow, pixelCol);
                         break;
                 }

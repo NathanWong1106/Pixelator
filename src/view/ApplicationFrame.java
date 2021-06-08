@@ -1,6 +1,7 @@
 package view;
 
 import model.Config;
+import model.ProcessOption;
 import pipeline.ImageReader;
 import pipeline.Runner;
 import model.Command;
@@ -11,12 +12,11 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class ApplicationFrame extends JFrame implements ActionListener, ChangeListener {
+public class ApplicationFrame extends JFrame implements ActionListener, ChangeListener, ItemListener {
     private static final int WIDTH = 1920, HEIGHT = 1080;
     private static final String FONT = "Calibri";
 
@@ -27,10 +27,12 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     private JButton convertButton = new JButton("Convert");
     private JLabel originalImg = new JLabel();
     private JLabel convertedImg = new JLabel();
+    private JLabel processOptionsHeader = new JLabel("Processing Type");
+    private JComboBox processingOptions = new JComboBox(ProcessOption.values());
 
     private Command runner = new Runner();
 
-    private JComponent[] frameComponents = {title, sliderHeader, detailSlider, filePickerButton, convertButton, originalImg, convertedImg};
+    private JComponent[] frameComponents = {title, sliderHeader, detailSlider, filePickerButton, convertButton, originalImg, convertedImg, processOptionsHeader, processingOptions};
 
     public ApplicationFrame() {
         setSize(WIDTH, HEIGHT);
@@ -42,10 +44,18 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     }
 
     private void setupGUI() {
+        setupOptions();
         setupLabels();
         setupButtons();
         setupSlider();
         addGUIElements();
+    }
+
+    private void setupOptions() {
+        int mid = WIDTH / 2;
+        processingOptions.setSize(300, 30);
+        processingOptions.setLocation(mid - processingOptions.getWidth() / 2, 800);
+        processingOptions.addItemListener(this);
     }
 
     private void setupLabels() {
@@ -56,9 +66,14 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         title.setHorizontalAlignment(JLabel.CENTER);
 
         sliderHeader.setSize(200, 50);
-        sliderHeader.setLocation(mid - sliderHeader.getSize().width / 2, 750);
+        sliderHeader.setLocation(mid - sliderHeader.getSize().width / 2, 665);
         sliderHeader.setFont(new Font(FONT, Font.PLAIN, 20));
         sliderHeader.setHorizontalAlignment(JLabel.CENTER);
+
+        processOptionsHeader.setSize(200, 50);
+        processOptionsHeader.setLocation(mid - sliderHeader.getSize().width / 2, 750);
+        processOptionsHeader.setFont(new Font(FONT, Font.PLAIN, 20));
+        processOptionsHeader.setHorizontalAlignment(JLabel.CENTER);
 
         originalImg.setLocation(20, 100);
         originalImg.setSize(ImageSizeUtil.MAX_IM_SIZE_WIDTH, ImageSizeUtil.MAX_IM_SIZE_HEIGHT);
@@ -89,7 +104,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         detailSlider.setPaintTicks(true);
         detailSlider.setToolTipText("Choose a file to convert first!");
         detailSlider.setSize(300, 30);
-        detailSlider.setLocation(mid - detailSlider.getSize().width / 2, 800);
+        detailSlider.setLocation(mid - detailSlider.getSize().width / 2, 715);
         detailSlider.addChangeListener(this);
     }
 
@@ -211,6 +226,14 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         if (e.getSource() == detailSlider) {
             Config.setPixelSize(detailSlider.getValue());
             detailSlider.setToolTipText(String.format("Pixel Size: %d x %d", Config.pixelSize, Config.pixelSize));
+        }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        if(e.getStateChange() == ItemEvent.SELECTED) {
+            Config.processOption = (ProcessOption) processingOptions.getSelectedItem();
+            System.out.println(Config.processOption);
         }
     }
 }
