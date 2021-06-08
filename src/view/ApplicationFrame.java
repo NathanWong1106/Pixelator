@@ -4,6 +4,8 @@ import model.Config;
 import pipeline.ImageReader;
 import pipeline.ImageWriter;
 import pipeline.Processor;
+import pipeline.Runner;
+import util.Command;
 import util.ImageSizeUtil;
 
 import java.awt.*;
@@ -26,6 +28,8 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     private JButton convertButton = new JButton("Convert");
     private JLabel originalImg = new JLabel();
     private JLabel convertedImg = new JLabel();
+
+    private Command runner = new Runner();
 
     private JComponent[] frameComponents = {title, sliderHeader, detailSlider, filePickerButton, convertButton, originalImg, convertedImg};
 
@@ -203,14 +207,15 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
                 updateOriginalImg();
             }
         } else if (e.getSource() == convertButton) {
-            try {
+//            try {
                 if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
-                    ImageWriter.writeImageFromArray(Processor.processImage());
+                    new Modal(this, "Processing Image... please wait", runner);
+//                    ImageWriter.writeImageFromArray(Processor.processImage());
                     updateConvertedImg();
                 }
-            } catch (IOException err) {
-                System.err.println(err);
-            }
+//            } catch (IOException err) {
+//                System.err.println(err);
+//            }
 
         }
     }
