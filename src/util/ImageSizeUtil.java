@@ -3,6 +3,9 @@ package util;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * Utility to resize images and maintain aspect ratio on each JLabel
+ */
 public class ImageSizeUtil {
     public static final int MAX_IM_SIZE_WIDTH = 700;
     public static final int MAX_IM_SIZE_HEIGHT = 800;

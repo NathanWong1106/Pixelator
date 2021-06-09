@@ -8,9 +8,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The Processor contains all methods that turn a regular image into a pixelated image
+ */
 public class Processor {
+    //The maximum value of an rgb value (used to normalize from [0-1])
     private static final double MAX_RGB = 255;
 
+    /**
+     * Generates the correct block size to process the image and processes the image using the user-selected algorithm
+     * @return 2D matrix of Colors representing the pixelated image
+     * @implNote Returned matrix is of the number of vertical / horizontal blocks (not the size of the original image)
+     */
     public static Color[][] processImage() {
         int vertStep = Config.bufferedImage.getHeight() / Config.pixelSize;
         int horStep = Config.bufferedImage.getWidth() / Config.pixelSize;
@@ -32,11 +41,15 @@ public class Processor {
                 }
             }
         }
-
-        //return PostProcessor.getWeightedBlur(pixelImg);
         return pixelImg;
     }
 
+    /**
+     * Returns the colour of a pixel block by averaging all pixel colours in the block area
+     * @param rowStep the nth row from the top of the current pixel block
+     * @param colStep the nth column from the left of the current pixel block
+     * @return Color of the pixel block
+     */
     private static Color getColorSumAvg(int rowStep, int colStep) {
         double r = 0, g = 0, b = 0;
         int totalPixels = (int) Math.pow(Config.pixelSize, 2);
@@ -63,6 +76,12 @@ public class Processor {
         return new Color((int) r, (int) g, (int) b);
     }
 
+    /**
+     * Returns the colour of a pixel block by getting the most dominant colour in the block area
+     * @param rowStep the nth row from the top of the current pixel block
+     * @param colStep the nth column from the left of the current pixel block
+     * @return Color of the pixel block
+     */
     private static Color getDominantColor(int rowStep, int colStep) {
         HashMap<Integer, Integer> count = new HashMap<>();
 
@@ -90,7 +109,14 @@ public class Processor {
         return new Color(color);
     }
 
-    //By far the least efficient algorithm but also the one with the best results
+    /**
+     * Returns the colour of a pixel block by taking a count of all colours
+     * then returns the Colour with the largest amount of similarly coloured pixels within the block.
+     * @param rowStep the nth row from the top of the current pixel block
+     * @param colStep the nth column from the left of the current pixel block
+     * @implNote By far the least efficient algorithm but results may be improved depending on the image
+     * @return Color of the pixel block
+     */
     private static Color getDominantColorBySimilarity(int rowStep, int colStep) {
         HashMap<Integer, Integer> count = new HashMap<>();
         HashMap<Integer, Integer> similarityCount;

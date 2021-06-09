@@ -72,4 +72,8 @@ public final class Util {
     public static boolean isColorSimilar(Color c1, Color c2) {
         return getEuclideanSimilarity(c1, c2) < SIM_THRESHOLD;
     }
+
+    public static String getHTMLWrappedString(String s) {
+        return "<html>" + s + "</html>";
+    }
 }

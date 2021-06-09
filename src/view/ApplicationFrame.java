@@ -6,33 +6,42 @@ import pipeline.ImageReader;
 import pipeline.Runner;
 import model.Command;
 import util.ImageSizeUtil;
+import util.Util;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.concurrent.CancellationException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+/**
+ * Main Frame that is shown to the user containing all functionality of the application
+ */
 public class ApplicationFrame extends JFrame implements ActionListener, ChangeListener, ItemListener {
     private static final int WIDTH = 1920, HEIGHT = 1080;
     private static final String FONT = "Calibri";
+    private static final String DESCRIPTION_PREPEND = "<b>Algorithm Description:</b> ";
 
     private JLabel title = new JLabel("Pixelator");
-    private JLabel sliderHeader = new JLabel("Detail");
+    private JLabel sliderHeader = new JLabel("Detail | Pixel Size");
     private JSlider detailSlider = new JSlider();
     private JButton filePickerButton = new JButton("Choose File");
     private JButton convertButton = new JButton("Convert");
     private JLabel originalImg = new JLabel();
     private JLabel convertedImg = new JLabel();
     private JLabel processOptionsHeader = new JLabel("Processing Type");
+    private JLabel algorithmDescription = new JLabel(Util.getHTMLWrappedString(DESCRIPTION_PREPEND + Config.processOption.getDescription()));
     private JComboBox processingOptions = new JComboBox(ProcessOption.values());
 
     private Command runner = new Runner();
 
-    private JComponent[] frameComponents = {title, sliderHeader, detailSlider, filePickerButton, convertButton, originalImg, convertedImg, processOptionsHeader, processingOptions};
+    private JComponent[] frameComponents = {title, sliderHeader, detailSlider, filePickerButton,
+            convertButton, originalImg, convertedImg, processOptionsHeader,
+            algorithmDescription, processingOptions};
 
     public ApplicationFrame() {
         setSize(WIDTH, HEIGHT);
@@ -43,6 +52,9 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         setVisible(true);
     }
 
+    /**
+     * Calls all gui setup methods in order
+     */
     private void setupGUI() {
         setupOptions();
         setupLabels();
@@ -51,6 +63,9 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         addGUIElements();
     }
 
+    /**
+     * Sets up the processing options combo box that allows the user to select an algorithm to process their image
+     */
     private void setupOptions() {
         int mid = WIDTH / 2;
         processingOptions.setSize(300, 30);
@@ -58,6 +73,9 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         processingOptions.addItemListener(this);
     }
 
+    /**
+     * Sets up all labels/headings in the frame
+     */
     private void setupLabels() {
         int mid = WIDTH / 2;
         title.setSize(200, 100);
@@ -66,9 +84,10 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         title.setHorizontalAlignment(JLabel.CENTER);
 
         sliderHeader.setSize(200, 50);
-        sliderHeader.setLocation(mid - sliderHeader.getSize().width / 2, 665);
+        sliderHeader.setLocation(mid - sliderHeader.getSize().width / 2, 650);
         sliderHeader.setFont(new Font(FONT, Font.PLAIN, 20));
         sliderHeader.setHorizontalAlignment(JLabel.CENTER);
+        sliderHeader.setToolTipText("Lower values preserve more detail and result in smaller pixels");
 
         processOptionsHeader.setSize(200, 50);
         processOptionsHeader.setLocation(mid - sliderHeader.getSize().width / 2, 750);
@@ -84,46 +103,76 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         convertedImg.setSize(ImageSizeUtil.MAX_IM_SIZE_WIDTH, ImageSizeUtil.MAX_IM_SIZE_HEIGHT);
         convertedImg.setHorizontalAlignment(JLabel.CENTER);
         convertedImg.setVerticalAlignment(JLabel.CENTER);
+
+        algorithmDescription.setSize(300,60);
+        algorithmDescription.setLocation(mid - algorithmDescription.getSize().width / 2,830);
+        algorithmDescription.setFont(new Font (FONT, Font.PLAIN, 14));
+        algorithmDescription.setVerticalAlignment(JLabel.TOP);
+        algorithmDescription.setHorizontalAlignment(JLabel.CENTER);
     }
 
+    /**
+     * Sets up all buttons in the frame and binds this as an action listener.
+     * The convert button is initially disabled without an input image
+     */
     private void setupButtons() {
         int mid = WIDTH / 2;
         filePickerButton.setSize(200, 50);
-        filePickerButton.setLocation(mid - filePickerButton.getSize().width / 2, 875);
+        filePickerButton.setLocation(mid - filePickerButton.getSize().width / 2, 900);
         filePickerButton.addActionListener(this);
 
         convertButton.setSize(200, 50);
-        convertButton.setLocation(mid - convertButton.getSize().width / 2, 950);
+        convertButton.setLocation(mid - convertButton.getSize().width / 2, 975);
         convertButton.addActionListener(this);
         convertButton.setEnabled(false);
     }
 
+    /**
+     * Sets up the detail slider (initially disabled without an input image)
+     */
     private void setupSlider() {
         int mid = WIDTH / 2;
         detailSlider.setEnabled(false);
         detailSlider.setPaintTicks(true);
+        detailSlider.setPaintLabels(true);
         detailSlider.setToolTipText("Choose a file to convert first!");
-        detailSlider.setSize(300, 30);
-        detailSlider.setLocation(mid - detailSlider.getSize().width / 2, 715);
+        detailSlider.setSize(300, 50);
+        detailSlider.setLocation(mid - detailSlider.getSize().width / 2, 700);
         detailSlider.addChangeListener(this);
     }
 
+    /**
+     * Based on the number of ticks needed, update the slider ticks and reset the selected index to 0
+     */
     private void setSliderTicks(int numTicks) {
+        Hashtable<Integer, JLabel> labels = new Hashtable<>();
+        for(int i = 0; i < numTicks; i++){
+            labels.put(i, new JLabel(Integer.toString(Config.pixelSizeOptions[i])));
+        }
+
         detailSlider.setMinimum(0);
         detailSlider.setMaximum(numTicks - 1);
         detailSlider.setMajorTickSpacing(1);
         detailSlider.setEnabled(true);
+        detailSlider.setLabelTable(labels);
 
         detailSlider.setValue(0);
         Config.setPixelSize(0);
     }
 
+    /**
+     * Adds all GUI components to the frame
+     */
     private void addGUIElements() {
         for (JComponent component : frameComponents) {
             add(component);
         }
     }
 
+    /**
+     * Opens up a file chooser and allows the user to choose a file
+     * @return true if a file was chosen, false if cancelled
+     */
     private boolean chooseFile() {
         boolean hasChosenFile = false;
 
@@ -152,6 +201,10 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         return true;
     }
 
+    /**
+     * Opens a file chooser and allows the user to choose an output folder
+     * @return true if a folder has been selected, false if cancelled
+     */
     private boolean chooseOutputFolder() {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
@@ -168,6 +221,10 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         return true;
     }
 
+    /**
+     * Shows an input dialog to the user asking for input of an output file name (e.g. "converted")
+     * @return true if a name was given, false if cancelled
+     */
     private boolean chooseOutputName() {
         String name = "";
 
@@ -185,21 +242,29 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
         return true;
     }
 
+    /**
+     * Updates the original image with the buffered image stored in config
+     */
     private void updateOriginalImg() {
         originalImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.bufferedImage)));
     }
 
+    /**
+     * Updates the converted image with the converted buffered image stored in config
+     */
     private void updateConvertedImg() {
         convertedImg.setIcon(new ImageIcon(ImageSizeUtil.getDisplayViableImage(Config.convertedImage)));
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        //Update the original image label if a new image is picked
         if (e.getSource() == filePickerButton) {
             if (chooseFile()) {
                 updateOriginalImg();
             }
         } else if (e.getSource() == convertButton) {
+            //Allow the user to choose their output folder and file name then start the processing pipeline to generate the new image
             if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
                 boolean processDone = true;
                 try {
@@ -213,6 +278,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
                     processDone = false;
                 }
 
+                //If a new image is successfully processed then update the converted image label with the new image
                 if (processDone) {
                     updateConvertedImg();
                 }
@@ -233,7 +299,7 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     public void itemStateChanged(ItemEvent e) {
         if(e.getStateChange() == ItemEvent.SELECTED) {
             Config.processOption = (ProcessOption) processingOptions.getSelectedItem();
-            System.out.println(Config.processOption);
+            algorithmDescription.setText(Util.getHTMLWrappedString(DESCRIPTION_PREPEND + Config.processOption.getDescription()));
         }
     }
 }

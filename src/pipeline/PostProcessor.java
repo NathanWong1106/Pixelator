@@ -2,9 +2,19 @@ package pipeline;
 
 import java.awt.*;
 
+/**
+ * With more time this step in the rendering pipeline could be used to apply some more complicated algorithms (e.g. edge enhancement, vibrancy enhancements, vignette, etc)
+ * @deprecated Used to be the final step of the dominant colour processing algorithm - replaced by {@code Processor.getDominantColorBySimilarity}
+ */
 public class PostProcessor {
+    //How influential the central pixel is in each block
     public static final double centralPixelWeight = 10;
 
+    /**
+     * In essence an implementation of box blur with pixel weightings
+     * @param img 2D matrix of Colors representing an image.
+     * @return 2D matrix of Colors representing the blurred image.
+     */
     public static Color[][] getWeightedBlur(Color[][] img){
         int height = img.length;
         int width = img[0].length;
