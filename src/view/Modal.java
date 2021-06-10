@@ -28,6 +28,10 @@ public class Modal extends JDialog implements ActionListener {
      * @param runnable Command to run in the swing worker thread
      * @throws ExecutionException
      * @throws InterruptedException
+     *
+     * References:
+     * https://docs.oracle.com/javase/7/docs/api/javax/swing/JDialog.html
+     * https://docs.oracle.com/javase/7/docs/api/javax/swing/SwingWorker.html
      */
     public Modal(Frame parent, String message, Command runnable) throws ExecutionException, InterruptedException {
         //Setup modal GUI
