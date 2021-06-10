@@ -21,10 +21,12 @@ public class Processor {
      * @implNote Returned matrix is of the number of vertical / horizontal blocks (not the size of the original image)
      */
     public static Color[][] processImage() {
+        //Calculate the number of rows/columns of pixels in the converted image
         int vertStep = Config.bufferedImage.getHeight() / Config.pixelSize;
         int horStep = Config.bufferedImage.getWidth() / Config.pixelSize;
         Color[][] pixelImg = new Color[vertStep][horStep];
 
+        //Find the color for each block in the converted image using the chosen algorithm
         for (int pixelRow = 0; pixelRow < vertStep; pixelRow++) {
             for (int pixelCol = 0; pixelCol < horStep; pixelCol++) {
 
@@ -54,9 +56,11 @@ public class Processor {
         double r = 0, g = 0, b = 0;
         int totalPixels = (int) Math.pow(Config.pixelSize, 2);
 
+        //Bottom/Right side limits of the current block we are processing
         int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
         int colLim = Config.pixelSize * colStep + Config.pixelSize;
 
+        //Sum the total normalized rgb values of each pixel within the block
         for (int row = Config.pixelSize * rowStep; row < rowLim; row++) {
             for (int col = Config.pixelSize * colStep; col < colLim; col++) {
                 Color color = new Color(Config.bufferedImage.getRGB(col, row));
@@ -83,30 +87,11 @@ public class Processor {
      * @return Color of the pixel block
      */
     private static Color getDominantColor(int rowStep, int colStep) {
-        HashMap<Integer, Integer> count = new HashMap<>();
+        //Get a count of the occurrences of each color in the block
+        HashMap<Integer, Integer> count = getColorOccurrences(rowStep, colStep);
 
-        int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
-        int colLim = Config.pixelSize * colStep + Config.pixelSize;
-
-        for (int row = Config.pixelSize * rowStep; row < rowLim; row++) {
-            for (int col = Config.pixelSize * colStep; col < colLim; col++) {
-                Color color = new Color(Config.bufferedImage.getRGB(col, row));
-                count.putIfAbsent(color.getRGB(), 0);
-                count.put(color.getRGB(), count.get(color.getRGB()) + 1);
-            }
-        }
-
-        int max = 0;
-        int color = 0;
-
-        for(Map.Entry<Integer, Integer> e : count.entrySet()){
-            if(max < e.getValue()){
-                max = e.getValue();
-                color = e.getKey();
-            }
-        }
-
-        return new Color(color);
+        //Find the most common colour in the block then return it
+        return new Color(getKeyWithLargestVal(count));
     }
 
     /**
@@ -118,29 +103,18 @@ public class Processor {
      * @return Color of the pixel block
      */
     private static Color getDominantColorBySimilarity(int rowStep, int colStep) {
-        HashMap<Integer, Integer> count = new HashMap<>();
-        HashMap<Integer, Integer> similarityCount;
-
-        int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
-        int colLim = Config.pixelSize * colStep + Config.pixelSize;
-
-        for (int row = Config.pixelSize * rowStep; row < rowLim; row++) {
-            for (int col = Config.pixelSize * colStep; col < colLim; col++) {
-                Color color = new Color(Config.bufferedImage.getRGB(col, row));
-                count.putIfAbsent(color.getRGB(), 0);
-                count.put(color.getRGB(), count.get(color.getRGB()) + 1);
-            }
-        }
-
-        similarityCount = new HashMap<>(count);
-
+        HashMap<Integer, Integer> count = getColorOccurrences(rowStep, colStep);
+        HashMap<Integer, Integer> similarityCount = new HashMap<>(count);
         ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(count.entrySet());
+
+        //Compare and sum the values of similar colors
         for(int i = 0, size = list.size(); i < size - 1; i++){
             Color color1 = new Color(list.get(i).getKey());
 
             for(int j = i + 1; j < size; j++){
                 Color color2 = new Color(list.get(j).getKey());
 
+                //If the color is similar then increment each key's count by the other's respective value
                 if(Util.isColorSimilar(color1, color2)){
                     similarityCount.put(color1.getRGB(), similarityCount.get(color1.getRGB()) + count.get(color2.getRGB()));
                     similarityCount.put(color2.getRGB(), similarityCount.get(color2.getRGB()) + count.get(color1.getRGB()));
@@ -149,16 +123,52 @@ public class Processor {
             }
         }
 
-        int max = 0;
-        int color = 0;
+        //Return the color with the most common colors to it
+        return new Color(getKeyWithLargestVal(similarityCount));
+    }
 
-        for(Map.Entry<Integer, Integer> e : similarityCount.entrySet()){
-            if(max < e.getValue()){
-                max = e.getValue();
-                color = e.getKey();
+    /**
+     * For a given block, returns the occurrences of each color contained in it
+     * @param rowStep the nth row from the top of the current pixel block
+     * @param colStep the nth column from the left of the current pixel block
+     * @return HashMap of the Color(int representation) and the number of times it has occurred
+     */
+    private static HashMap<Integer, Integer> getColorOccurrences(int rowStep, int colStep) {
+        HashMap<Integer, Integer> count = new HashMap<>();
+
+        //Bottom/Right side limits of the current block we are processing
+        int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
+        int colLim = Config.pixelSize * colStep + Config.pixelSize;
+
+        //Find the number of occurrences of each pixel colour in the block
+        for (int row = Config.pixelSize * rowStep; row < rowLim; row++) {
+            for (int col = Config.pixelSize * colStep; col < colLim; col++) {
+                Color color = new Color(Config.bufferedImage.getRGB(col, row));
+                count.putIfAbsent(color.getRGB(), 0);
+                count.put(color.getRGB(), count.get(color.getRGB()) + 1);
             }
         }
 
-        return new Color(color);
+        return count;
+    }
+
+    /**
+     * Returns the key of a HashMap with the largest integer value
+     * @param map {@code HashMap<T, Integer>} containing the values
+     * @param <T> Type of keys that the map uses
+     * @return key with largest integer value
+     */
+    private static <T> T getKeyWithLargestVal(HashMap<T, Integer> map) {
+        int max = 0;
+        T maxKey = null;
+
+        for(Map.Entry<T, Integer> e : map.entrySet()){
+            if(max < e.getValue()){
+                max = e.getValue();
+                maxKey = e.getKey();
+            }
+        }
+
+        return maxKey;
     }
 }
