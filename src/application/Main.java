@@ -31,16 +31,19 @@ import view.ApplicationFrame;
         4.1) In place array reversal
         4.2) 3 processing algorithms
         4.3) Euclid's GCD & Finding all common denominators
-    5) Datastructures:
+    5) Datastructures/Objects:
         5.1) Arrays (1D, 2D)
         5.2) ArrayLists
         5.3) HashMap
         5.4) HashTable
+        5.5) BufferedImage
+        5.6) Color
     6) Interfaces
     7) Object Oriented Programming
 
  Areas of Concern:
-    Because the algorithms do not account for the alpha channel (transparency), processing of images with transparency may result in unintended results.
+    1) Because the algorithms do not account for the alpha channel (transparency), processing of images with transparency may result in unintended results.
+    2) The labels of the detail slider may look messy if there are too many common denominators of the width and height in an image
 
  */
 public class Main {

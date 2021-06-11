@@ -145,23 +145,26 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
      * Based on the number of ticks needed, update the slider ticks and reset the selected index to 0
      */
     private void setSliderTicks(int numTicks) {
+        //Prepare a hashtable to map the pixel size to the appropriate slider value
         Hashtable<Integer, JLabel> labels = new Hashtable<>();
         for(int i = 0; i < numTicks; i++){
             labels.put(i, new JLabel(Integer.toString(Config.pixelSizeOptions[i])));
         }
 
+        //Update slider ticks
         detailSlider.setMinimum(0);
         detailSlider.setMaximum(numTicks - 1);
         detailSlider.setMajorTickSpacing(1);
         detailSlider.setEnabled(true);
         detailSlider.setLabelTable(labels);
 
+        //Set to least amount of detail initially
         detailSlider.setValue(0);
         Config.setPixelSize(0);
     }
 
     /**
-     * Adds all GUI components to the frame
+     * Adds all GUI components contained in the frameComponents array to the frame
      */
     private void addGUIElements() {
         for (JComponent component : frameComponents) {
@@ -176,27 +179,33 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     private boolean chooseFile() {
         boolean hasChosenFile = false;
 
+        //Create a file chooser and start it at the project's root directory
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
 
         while (!hasChosenFile) {
+            //Prompt the user for a file
             int ret = chooser.showDialog(this, "Choose an image");
 
             if (ret == JFileChooser.APPROVE_OPTION) {
+                //If the user has selected a file then try to read it as an image and set the pixel size options
                 File selected = chooser.getSelectedFile();
                 hasChosenFile = true;
                 try {
                     ImageReader.readImage(selected);
                     setSliderTicks(Config.pixelSizeOptions.length);
                 } catch (IOException e) {
+                    //If the file is incompatible then prompt then repeat the process again
                     JOptionPane.showMessageDialog(this, "Invalid file. Please choose again.");
                     hasChosenFile = false;
                 }
             } else if (ret == JFileChooser.CANCEL_OPTION) {
+                //Stop the process if the user has cancelled
                 return false;
             }
         }
 
+        //Enable the convert button once a file as been selected
         convertButton.setEnabled(true);
         return true;
     }
@@ -206,17 +215,21 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
      * @return true if a folder has been selected, false if cancelled
      */
     private boolean chooseOutputFolder() {
+        //Create a file chooser that only accepts folders as input
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(new File("."));
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
 
+        //Prompt the user to select a folder
         int res = chooser.showDialog(this, "Choose output folder");
 
+        //If they cancel then stop the process
         if (res == JOptionPane.NO_OPTION) {
             return false;
         }
 
+        //Update the config
         Config.outputFolder = chooser.getSelectedFile().getAbsolutePath();
         return true;
     }
@@ -228,8 +241,12 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
     private boolean chooseOutputName() {
         String name = "";
 
+        //Continue while the name is a blank string
         while (name.equals("")) {
+            //Get the user input for the name
             name = JOptionPane.showInputDialog(this, "Name of output file", "converted");
+
+            //If the name is null then the user has cancelled, if the name is "" then re-prompt the user
             if (name == null) {
                 return false;
             } else if (name.equals("")) {
@@ -237,8 +254,8 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
             }
         }
 
+        //Update the config
         Config.outputFileName = name;
-
         return true;
     }
 
@@ -268,8 +285,12 @@ public class ApplicationFrame extends JFrame implements ActionListener, ChangeLi
             if (Config.bufferedImage != null && chooseOutputFolder() && chooseOutputName()) {
                 boolean processDone = true;
                 try {
+                    //The modal starts a new thread with the processes described in runner
+                    //This is still a blocking piece of code and will not run asynchronously
+                    //Once finished, the modal will destroy itself
                     new Modal(this, "Processing Image... please wait", runner);
                 } catch (Exception err) {
+                    //Catch any errors or cancellations from the process/user
                     if (err instanceof CancellationException) {
                         System.out.println("Cancelled Processing");
                     } else {

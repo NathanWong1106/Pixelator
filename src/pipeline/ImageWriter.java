@@ -24,12 +24,14 @@ public class ImageWriter {
 
         BufferedImage img = new BufferedImage(Config.bufferedImage.getWidth(), Config.bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
 
+        //For each block fill the block's area in the img with its color
         for (int row = 0; row < imgArr.length; row++) {
             for (int col = 0; col < imgArr[0].length; col++) {
                 fillPixels(row, col, img, imgArr[row][col]);
             }
         }
 
+        //Update the config then write the processed image
         Config.convertedImage = img;
         File out = new File(Config.outputFolder + "/" + Config.outputFileName + FORMAT);
         ImageIO.write(img, "png", out);
@@ -47,6 +49,7 @@ public class ImageWriter {
         int rowLim = Config.pixelSize * rowStep + Config.pixelSize;
         int colLim = Config.pixelSize * colStep + Config.pixelSize;
 
+        //For each pixel in the block set the color of the corresponding pixel in img to the color
         for (int row = Config.pixelSize * rowStep; row < rowLim; row++) {
             for (int col = Config.pixelSize * colStep; col < colLim; col++) {
                 img.setRGB(col, row, color.getRGB());

@@ -20,6 +20,7 @@ public final class Util {
 
         int remainder = -1;
 
+        //Alternate assigning remainders until one divides evenly into the other
         while (remainder != 0) {
             remainder = x < y ? y % x : x % y;
             if (x < y) {
@@ -29,6 +30,7 @@ public final class Util {
             }
         }
 
+        //return the GCD
         return x > y ? x : y;
     }
 
@@ -39,9 +41,11 @@ public final class Util {
      * @return int array of Square pixel sizes that fit in the buffered image perfectly
      */
     public static int[] getPixelOptions(BufferedImage img) {
+        //Get the GCD between the height and width of the image
         int gcd = euclidGCD(img.getHeight(), img.getWidth());
         ArrayList<Integer> common = new ArrayList<>();
 
+        //Add all other common denominators up to the sqrt of GCDjo
         for (int i = 1; i <= Math.sqrt(gcd); i++) {
             if (gcd % i == 0) {
                 if (gcd / i != i) {
@@ -51,12 +55,11 @@ public final class Util {
             }
         }
 
+        //Copy the values into an int array then reverse to match detail slider
         int[] commonArr = new int[common.size()];
-
         for (int i = 0; i < commonArr.length; i++) {
             commonArr[i] = common.get(i);
         }
-
         Arrays.sort(commonArr);
         reversePrimitiveIntArray(commonArr);
 
