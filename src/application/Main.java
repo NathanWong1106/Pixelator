@@ -11,8 +11,9 @@ import view.ApplicationFrame;
  Title: Pixelator
 
  Description:
-     A program that transforms a normal image into a pixelated image (pixel art).
-     The user can choose from 3 different processing algorithms to best suit their image's needs.
+     This program takes an input image and attempts to convert it into pixel art.
+     The user is able to customize the output image by selecting the pixel sizes in addition to choosing 1 of 3 processing
+     algorithms.
 
  Features:
     1) Application GUI                                  - Maintaining aspect ratio of images, placement of buttons, labels, sliders, etc
@@ -39,7 +40,8 @@ import view.ApplicationFrame;
         5.5) BufferedImage
         5.6) Color
     6) Interfaces
-    7) Object Oriented Programming
+    7) Enums
+    8) Object Oriented Programming/Design
 
  Areas of Concern:
     1) Because the algorithms do not account for the alpha channel (transparency), processing of images with transparency may result in unintended results.
